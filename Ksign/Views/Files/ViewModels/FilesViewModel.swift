@@ -510,27 +510,4 @@ class FilesViewModel: ObservableObject {
         }
     }
     
-
-    
-
-    func navigateToPlistEditor(_ file: FileItem) {
-        guard file.isPlistFile else { return }
-        
-        NotificationCenter.default.post(
-            name: NSNotification.Name("NavigateToPlistEditor"),
-            object: nil,
-            userInfo: ["fileURL": file.url]
-        )
-    }
-    
-
-    func navigateToHexEditor(_ file: FileItem) {
-        guard !file.isDirectory else { return }
-        
-        NotificationCenter.default.post(
-            name: NSNotification.Name("NavigateToHexEditor"),
-            object: nil,
-            userInfo: ["fileURL": file.url]
-        )
-    }
 } 

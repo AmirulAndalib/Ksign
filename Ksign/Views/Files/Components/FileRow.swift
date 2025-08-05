@@ -12,9 +12,7 @@ struct FileRow: View {
     let isSelected: Bool
     @ObservedObject var viewModel: FilesViewModel
     @Binding var plistFileURL: URL?
-    @Binding var navigateToPlistEditor: Bool
     @Binding var hexEditorFileURL: URL?
-    @Binding var navigateToHexEditor: Bool
     @Binding var shareItems: [Any]
     @Binding var showingShareSheet: Bool
     
@@ -29,9 +27,7 @@ struct FileRow: View {
         isSelected: Bool, 
         viewModel: FilesViewModel,
         plistFileURL: Binding<URL?>,
-        navigateToPlistEditor: Binding<Bool>,
         hexEditorFileURL: Binding<URL?>,
-        navigateToHexEditor: Binding<Bool>,
         shareItems: Binding<[Any]>,
         showingShareSheet: Binding<Bool>,
         onExtractArchive: @escaping (FileItem) -> Void,
@@ -44,9 +40,7 @@ struct FileRow: View {
         self.isSelected = isSelected
         self.viewModel = viewModel
         self._plistFileURL = plistFileURL
-        self._navigateToPlistEditor = navigateToPlistEditor
         self._hexEditorFileURL = hexEditorFileURL
-        self._navigateToHexEditor = navigateToHexEditor
         self._shareItems = shareItems
         self._showingShareSheet = showingShareSheet
         self.onExtractArchive = onExtractArchive
@@ -175,14 +169,12 @@ struct FileRow: View {
         if file.isPlistFile {
             Button(String(localized: "Plist Editor")) {
                 plistFileURL = file.url
-                navigateToPlistEditor = true
             }
         }
         
         if !file.isDirectory {
             Button(String(localized: "Hex Editor")) {
                 hexEditorFileURL = file.url
-                navigateToHexEditor = true
             }
         }
         

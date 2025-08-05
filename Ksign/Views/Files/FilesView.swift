@@ -10,6 +10,10 @@ import UniformTypeIdentifiers
 import QuickLook
 import NimbleViews
 
+extension URL: Identifiable {
+    public var id: String { self.absoluteString }
+}
+
 struct FilesView: View {
     let directoryURL: URL?
     let isRootView: Bool
@@ -21,9 +25,7 @@ struct FilesView: View {
 
     @State private var extractionProgress: Double = 0
     @State private var isExtracting = false
-    @State private var navigateToPlistEditor = false
     @State private var plistFileURL: URL?
-    @State private var navigateToHexEditor = false
     @State private var hexEditorFileURL: URL?
     @State private var showFilePreview = false
     @State private var previewFile: FileItem?
@@ -130,17 +132,11 @@ struct FilesView: View {
             FileDirectoryPickerView(viewModel: viewModel)
         }
 
-        .fullScreenCover(isPresented: $navigateToPlistEditor) {
-            if let fileURL = plistFileURL {
-                PlistEditorView(fileURL: fileURL)
-                    .edgesIgnoringSafeArea(.all)
-            }
+        .fullScreenCover(item: $plistFileURL) { fileURL in
+            PlistEditorView(fileURL: fileURL)
         }
-        .fullScreenCover(isPresented: $navigateToHexEditor) {
-            if let fileURL = hexEditorFileURL {
-                HexEditorView(fileURL: fileURL)
-                    .edgesIgnoringSafeArea(.all)
-            }
+        .fullScreenCover(item: $hexEditorFileURL) { fileURL in
+            HexEditorView(fileURL: fileURL)
         }
         .alert(String(localized: "New Folder"), isPresented: $viewModel.showingNewFolderDialog) {
             TextField(String(localized: "Folder name"), text: $viewModel.newFolderName)
@@ -236,9 +232,7 @@ struct FilesView: View {
                     isSelected: viewModel.selectedItems.contains(file),
                     viewModel: viewModel,
                     plistFileURL: $plistFileURL,
-                    navigateToPlistEditor: $navigateToPlistEditor,
                     hexEditorFileURL: $hexEditorFileURL,
-                    navigateToHexEditor: $navigateToHexEditor,
                     shareItems: $shareItems,
                     showingShareSheet: $showingShareSheet,
                     onExtractArchive: extractArchive,
@@ -304,19 +298,7 @@ struct FilesView: View {
             self.isExtracting = false
         }
         
-        NotificationCenter.default.addObserver(forName: NSNotification.Name("NavigateToPlistEditor"), object: nil, queue: .main) { notification in
-            if let fileURL = notification.userInfo?["fileURL"] as? URL {
-                self.plistFileURL = fileURL
-                self.navigateToPlistEditor = true
-            }
-        }
-        
-        NotificationCenter.default.addObserver(forName: NSNotification.Name("NavigateToHexEditor"), object: nil, queue: .main) { notification in
-            if let fileURL = notification.userInfo?["fileURL"] as? URL {
-                self.hexEditorFileURL = fileURL
-                self.navigateToHexEditor = true
-            }
-        }
+   
     }
     
     // MARK: - Toolbar Items
