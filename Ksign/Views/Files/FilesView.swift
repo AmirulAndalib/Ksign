@@ -98,17 +98,17 @@ struct FilesView: View {
                         addButton
                         editButton
                     }
-                    
-                    if viewModel.isEditMode == .active {
-                        ToolbarItemGroup(placement: .bottomBar) {
+                    ToolbarItem(placement: .topBarLeading) {
+                        HStack(spacing: 12) {
                             selectAllButton
-                            Spacer()
                             moveButton
-                            Spacer()
                             shareButton
-                            Spacer()
                             deleteButton
                         }
+                        .opacity(viewModel.isEditMode == .active ? 1 : 0)
+                        .offset(x: viewModel.isEditMode == .active ? 0 : -16)
+                        .animation(.spring(response: 0.35, dampingFraction: 0.9), value: viewModel.isEditMode)
+                        .allowsHitTesting(viewModel.isEditMode == .active)
                     }
                 }
             
@@ -192,10 +192,25 @@ struct FilesView: View {
         Group {
             if viewModel.isLoading {
                 loadingView
-            } else if filteredFiles.isEmpty {
-                emptyStateView
             } else {
                 fileListView
+            }
+        }
+        .overlay {
+            if filteredFiles.isEmpty && !viewModel.isLoading {
+                if #available(iOS 17, *) {
+                    ContentUnavailableView {
+                        Label(.localized("No Files"), systemImage: "folder.fill.badge.questionmark")
+                    } description: {
+                        Text(.localized("Get started by importing your first file."))
+                    } actions: {
+                        Button {
+                            viewModel.showingImporter = true
+                        } label: {
+                            Label(String(localized: "Import Files"), systemImage: "")
+                        }
+                    }
+                }
             }
         }
     }
@@ -204,24 +219,6 @@ struct FilesView: View {
         ProgressView()
             .scaleEffect(1.5)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-    
-    private var emptyStateView: some View {
-        VStack(spacing: 12) {
-            Spacer()
-            Image(systemName: "folder")
-                .font(.system(size: 64))
-                .foregroundColor(.secondary.opacity(0.7))
-            
-            Text(String(localized: "This folder is empty"))
-                .font(.title3.bold())
-            
-            Text(String(localized: "Import files using the + button above"))
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-            Spacer()
-        }
-        .padding()
     }
     
     private var fileListView: some View {
@@ -328,9 +325,11 @@ struct FilesView: View {
     
     private var editButton: some View {
         Button {
-            viewModel.isEditMode = viewModel.isEditMode == .active ? .inactive : .active
-            if viewModel.isEditMode == .inactive {
-                viewModel.selectedItems.removeAll()
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                viewModel.isEditMode = viewModel.isEditMode == .active ? .inactive : .active
+                if viewModel.isEditMode == .inactive {
+                    viewModel.selectedItems.removeAll()
+                }
             }
         } label: {
             Text(viewModel.isEditMode == .active ? String(localized: "Done") : String(localized: "Edit"))
@@ -339,12 +338,15 @@ struct FilesView: View {
     
     private var selectAllButton: some View {
         Button {
-            for file in viewModel.files {
-                viewModel.selectedItems.insert(file)
+            if viewModel.selectedItems.isEmpty {
+                for file in viewModel.files {
+                    viewModel.selectedItems.insert(file)
+                }
+            } else {
+                viewModel.selectedItems.removeAll()
             }
         } label: {
-            Text(String(localized: "Select All"))
-                .fontWeight(.medium)
+            Image(systemName: viewModel.selectedItems.isEmpty ? "checklist.checked" : "checklist.unchecked")
         }
     }
     
@@ -386,7 +388,7 @@ struct FilesView: View {
             viewModel.deleteSelectedItems()
         } label: {
             Image(systemName: "trash")
-                .foregroundColor(viewModel.selectedItems.isEmpty ? .secondary : .red)
+                .tint(.red)
         }
         .disabled(viewModel.selectedItems.isEmpty)
     }

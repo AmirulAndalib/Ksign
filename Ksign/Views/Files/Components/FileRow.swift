@@ -113,22 +113,23 @@ struct FileRow: View {
             }
             
             Spacer()
-            
-            if isSelected && !file.isDirectory {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.accentColor)
-                    .font(.system(size: 22))
+            if viewModel.isEditMode == .inactive {
+                if file.isDirectory {
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 12))
+                }
             }
-            
-            if file.isDirectory {
+            else {
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.accentColor)
                         .font(.system(size: 22))
-                } else {
-                    Image(systemName: "chevron.right")
+                }
+                else {
+                    Image(systemName: "circle")
                         .foregroundColor(.secondary)
-                        .font(.system(size: 12))
+                        .font(.system(size: 22))
                 }
             }
         }
