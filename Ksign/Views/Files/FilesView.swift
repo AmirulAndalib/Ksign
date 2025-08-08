@@ -245,6 +245,7 @@ struct FilesView: View {
                     swipeActions(for: file)
                 }
                 .listRowBackground(selectionBackground(for: file))
+                
             }
         }
         .listStyle(.plain)
@@ -310,17 +311,15 @@ struct FilesView: View {
             } label: {
                 Label(String(localized: "Import Files"), systemImage: "doc.badge.plus")
             }
-            
+            .tint(.primary)
             Button {
                 viewModel.showingNewFolderDialog = true
             } label: {
                 Label(String(localized: "New Folder"), systemImage: "folder.badge.plus")
             }
+            .tint(.primary)
         } label: {
             Image(systemName: "plus")
-                .font(.system(size: 18, weight: .medium))
-                .frame(width: 32, height: 32)
-                .contentShape(Rectangle())
         }
         .menuStyle(BorderlessButtonMenuStyle())
         .menuIndicator(.hidden)
@@ -329,24 +328,19 @@ struct FilesView: View {
     
     private var editButton: some View {
         Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                viewModel.isEditMode = viewModel.isEditMode == .active ? .inactive : .active
-                if viewModel.isEditMode == .inactive {
-                    viewModel.selectedItems.removeAll()
-                }
+            viewModel.isEditMode = viewModel.isEditMode == .active ? .inactive : .active
+            if viewModel.isEditMode == .inactive {
+                viewModel.selectedItems.removeAll()
             }
         } label: {
             Text(viewModel.isEditMode == .active ? String(localized: "Done") : String(localized: "Edit"))
-                .fontWeight(.medium)
         }
     }
     
     private var selectAllButton: some View {
         Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                for file in viewModel.files {
-                    viewModel.selectedItems.insert(file)
-                }
+            for file in viewModel.files {
+                viewModel.selectedItems.insert(file)
             }
         } label: {
             Text(String(localized: "Select All"))

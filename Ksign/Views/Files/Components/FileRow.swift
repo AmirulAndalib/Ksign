@@ -114,16 +114,22 @@ struct FileRow: View {
             
             Spacer()
             
-            if isSelected {
+            if isSelected && !file.isDirectory {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(.accentColor)
                     .font(.system(size: 22))
-//                    .transition(.scale.combined(with: .opacity))
             }
+            
             if file.isDirectory {
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.secondary)
-                    .font(.system(size: 12))
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.accentColor)
+                        .font(.system(size: 22))
+                } else {
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 12))
+                }
             }
         }
         .padding(.vertical, 6)
@@ -131,7 +137,6 @@ struct FileRow: View {
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(isHovering ? Color.gray.opacity(0.1) : Color.clear)
-                .animation(.easeInOut(duration: 0.2), value: isHovering)
         )
         .onHover { hovering in
             isHovering = hovering
@@ -156,77 +161,111 @@ struct FileRow: View {
         ) {
             fileConfirmationDialogButtons()
         }
+        .contextMenu {
+            fileConfirmationDialogButtons()
+        }
     }
     
     @ViewBuilder
     private func fileConfirmationDialogButtons() -> some View {
         if !file.isDirectory {
-            Button(String(localized: "Preview")) {
+            Button {
                 onPresentQuickLook(file)
+            } label: {
+                Label(String(localized: "Preview"), systemImage: "eye")
             }
+            .tint(.primary)
         }
         
         if file.isPlistFile {
-            Button(String(localized: "Plist Editor")) {
+            Button {
                 plistFileURL = file.url
+            } label: {
+                Label(String(localized: "Plist Editor"), systemImage: "list.bullet")
             }
+            .tint(.primary)
         }
         
         if !file.isDirectory {
-            Button(String(localized: "Hex Editor")) {
+            Button {
                 hexEditorFileURL = file.url
+            } label: {
+                Label(String(localized: "Hex Editor"), systemImage: "doc.text")
             }
+            .tint(.primary)
         }
         
         if file.isP12Certificate {
-            Button(String(localized: "Import Certificate")) {
+            Button {
                 viewModel.importCertificate(file)
+            } label: {
+                Label(String(localized: "Import Certificate"), systemImage: "key")
             }
+            .tint(.primary)
         }
         
         if file.isKsignFile {
-            Button(String(localized: "Import Certificate")) {
+            Button {
                 viewModel.importKsignFile(file)
+            } label: {
+                Label(String(localized: "Import Certificate"), systemImage: "key")
             }
+            .tint(.primary)
         }
         
         if let ext = file.fileExtension?.lowercased(), ext == "ipa" {
-            Button(String(localized: "Import to Library")) {
+            Button {
                 onImportIpa(file)
+            } label: {
+                Text(String(localized: "Import to Library"))
+                Image(systemName: "folder")
             }
         }
         
         if let ext = file.fileExtension?.lowercased(), ext == "app" {
-            Button(String(localized: "Package as IPA")) {
+            Button {
                 onPackageApp(file)
+            } label: {
+                Label(String(localized: "Package as IPA"), systemImage: "doc.zipper")
             }
+            .tint(.primary)
         }
         
         if file.isArchive {
-            Button(String(localized: "Extract")) {
+            Button {
                 onExtractArchive(file)
+            } label: {
+                Label(String(localized: "Extract"), systemImage: "doc.zipper")
             }
+            .tint(.primary)
         }
         
-        Button(String(localized: "Rename")) {
+        Button {
             viewModel.itemToRename = file
             viewModel.newFileName = file.name
             viewModel.showRenameDialog = true
+        } label: {
+            Label(String(localized: "Rename"), systemImage: "pencil")
         }
+        .tint(.primary)
         
-        Button(String(localized: "Share")) {
+        Button {
             file.url.startAccessingSecurityScopedResource()
             shareItems = [file.url]
             showingShareSheet = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 file.url.stopAccessingSecurityScopedResource()
             }
+        } label: {
+            Label(String(localized: "Share"), systemImage: "square.and.arrow.up")
         }
+        .tint(.primary)
         
-        Button(String(localized: "Delete"), role: .destructive) {
-            withAnimation {
-                viewModel.deleteFile(file)
-            }
+        Button(role: .destructive) {
+            viewModel.deleteFile(file)
+        } label: {
+            Label(String(localized: "Delete"), systemImage: "trash")
         }
+        .tint(.red)
     }
 }
