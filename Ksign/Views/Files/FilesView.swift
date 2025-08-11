@@ -98,17 +98,15 @@ struct FilesView: View {
                         addButton
                         editButton
                     }
-                    ToolbarItem(placement: .topBarLeading) {
-                        HStack(spacing: 12) {
-                            selectAllButton
-                            moveButton
-                            shareButton
-                            deleteButton
+                    if viewModel.isEditMode == .active {
+                        ToolbarItem(placement: .topBarLeading) {
+                            HStack(spacing: 12) {
+                                selectAllButton
+                                moveButton
+                                shareButton
+                                deleteButton
+                            }
                         }
-                        .opacity(viewModel.isEditMode == .active ? 1 : 0)
-                        .offset(x: viewModel.isEditMode == .active ? 0 : -16)
-                        .animation(.spring(response: 0.35, dampingFraction: 0.9), value: viewModel.isEditMode)
-                        .allowsHitTesting(viewModel.isEditMode == .active)
                     }
                 }
             
