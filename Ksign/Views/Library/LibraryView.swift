@@ -123,7 +123,7 @@ struct LibraryView: View {
                             Menu {
                                 _importActions()
                             } label: {
-                                NBButton(.localized("Import"), systemImage: "", style: .text)
+                                Text("Import").bg()
                             }
                         }
                     }

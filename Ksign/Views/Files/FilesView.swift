@@ -225,7 +225,7 @@ struct FilesView: View {
                         Button {
                             viewModel.showingImporter = true
                         } label: {
-                            Label(String(localized: "Import Files"), systemImage: "")
+                            Text("Import Files").bg()
                         }
                     }
                 }

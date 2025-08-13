@@ -23,6 +23,18 @@ struct DylibsView: View {
     var body: some View {
         NBNavigationView(appName, displayMode: .inline) {
             VStack {
+                List(dylibFiles, id: \.absoluteString) { fileURL in
+                    DylibRowView(
+                        fileURL: fileURL,
+                        isSelected: selectedDylibs.contains(fileURL),
+                        toggleSelection: {
+                            toggleDylibSelection(fileURL)
+                        }
+                    )
+                }
+                .listStyle(.plain)
+            }
+            .overlay(alignment: .center) {
                 if dylibFiles.isEmpty {
                     if #available(iOS 17.0, *) {
                         ContentUnavailableView(
@@ -47,17 +59,6 @@ struct DylibsView: View {
                         .padding()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
-                } else {
-                    List(dylibFiles, id: \.absoluteString) { fileURL in
-                        DylibRowView(
-                            fileURL: fileURL,
-                            isSelected: selectedDylibs.contains(fileURL),
-                            toggleSelection: {
-                                toggleDylibSelection(fileURL)
-                            }
-                        )
-                    }
-                    .listStyle(.plain)
                 }
             }
             .toolbar {

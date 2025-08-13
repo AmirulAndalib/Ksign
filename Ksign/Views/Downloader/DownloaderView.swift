@@ -100,7 +100,7 @@ private extension DownloaderView {
                             Button {
                                 showURLAlert = true
                             } label: {
-                                NBButton(.localized("Add Download"), systemImage: "", style: .text)
+                                Text("Add Download").bg()
                             }
                         }
                     }
