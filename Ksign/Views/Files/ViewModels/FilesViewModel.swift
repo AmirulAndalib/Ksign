@@ -88,7 +88,7 @@ class FilesViewModel: ObservableObject {
 
     
     func deleteFile(_ fileItem: FileItem) {
-        deleteSingleFileOptimized(fileItem)
+        delete(items: [fileItem])
     }
     
     func deleteSelectedItems() {
@@ -96,68 +96,43 @@ class FilesViewModel: ObservableObject {
         
         let itemsToDelete = Array(selectedItems)
         
-        withAnimation {
-            selectedItems.removeAll()
-            if isEditMode == .active {
-                isEditMode = .inactive
-            }
+        delete(items: itemsToDelete)
+
+        selectedItems.removeAll()
+        if isEditMode == .active {
+            isEditMode = .inactive
         }
+    }
+
+    private func delete(items: [FileItem]) {
+        guard !items.isEmpty else { return }
         
-        deleteMultipleFilesOptimized(itemsToDelete)
-    }
-    
-    private func deleteSingleFileOptimized(_ fileItem: FileItem) {
         DispatchQueue.global(qos: .userInitiated).async {
             let fileManager = FileManager.default
-            do {
-                try fileManager.removeItem(at: fileItem.url)
-                DispatchQueue.main.async {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        if let index = self.files.firstIndex(where: { $0.url == fileItem.url }) {
-                            self.files.remove(at: index)
-                        }
-                    }
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    self.error = "Error deleting file: \(error.localizedDescription)"
-                    self.showingError = true
-                }
-            }
-        }
-    }
-    
-    private func deleteMultipleFilesOptimized(_ items: [FileItem]) {
-        DispatchQueue.global(qos: .userInitiated).async {
-            let fileManager = FileManager.default
-            var successCount = 0
             var errorMessages: [String] = []
             
             for item in items {
                 do {
                     try fileManager.removeItem(at: item.url)
-                    successCount += 1
                     
                     DispatchQueue.main.async {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            if let fileIndex = self.files.firstIndex(where: { $0.url == item.url }) {
-                                self.files.remove(at: fileIndex)
+                            if let index = self.files.firstIndex(where: { $0.url == item.url }) {
+                                self.files.remove(at: index)
                             }
                         }
                     }
-                    
                 } catch {
-                    errorMessages.append("Failed to delete \(item.name): \(error.localizedDescription)")
+                    errorMessages.append(item.name)
                 }
             }
             
             DispatchQueue.main.async {
-                if errorMessages.isEmpty {
-                    self.error = "Successfully deleted \(successCount) item\(successCount == 1 ? "" : "s")"
-                } else {
-                    self.error = "Deleted \(successCount) items. \(errorMessages.count) failed."
+                if !errorMessages.isEmpty {
+                    let count = errorMessages.count
+                    self.error = "Failed to delete \(count) item\(count == 1 ? "" : "s")"
+                    self.showingError = true
                 }
-                self.showingError = true
             }
         }
     }
