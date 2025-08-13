@@ -15,6 +15,7 @@ struct FileRow: View {
     @Binding var hexEditorFileURL: URL?
     @Binding var shareItems: [Any]
     @Binding var showingShareSheet: Bool
+    @Binding var moveFileItem: FileItem?
     
     let onExtractArchive: (FileItem) -> Void
     let onPackageApp: (FileItem) -> Void
@@ -30,6 +31,7 @@ struct FileRow: View {
         hexEditorFileURL: Binding<URL?>,
         shareItems: Binding<[Any]>,
         showingShareSheet: Binding<Bool>,
+        moveFileItem: Binding<FileItem?>,
         onExtractArchive: @escaping (FileItem) -> Void,
         onPackageApp: @escaping (FileItem) -> Void,
         onImportIpa: @escaping (FileItem) -> Void,
@@ -43,6 +45,7 @@ struct FileRow: View {
         self._hexEditorFileURL = hexEditorFileURL
         self._shareItems = shareItems
         self._showingShareSheet = showingShareSheet
+        self._moveFileItem = moveFileItem
         self.onExtractArchive = onExtractArchive
         self.onPackageApp = onPackageApp
         self.onImportIpa = onImportIpa
@@ -241,6 +244,13 @@ struct FileRow: View {
             }
             .tint(.primary)
         }
+
+        Button {
+            moveFileItem = file
+        } label: {
+            Label(String(localized: "Move"), systemImage: "folder")
+        }
+        .tint(.primary)
         
         Button {
             viewModel.itemToRename = file

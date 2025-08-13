@@ -27,6 +27,7 @@ struct FilesView: View {
     @State private var isExtracting = false
     @State private var plistFileURL: URL?
     @State private var hexEditorFileURL: URL?
+    @State private var moveSingleFile: FileItem?
     @State private var showFilePreview = false
     @State private var previewFile: FileItem?
     @State private var showingShareSheet = false
@@ -125,6 +126,16 @@ struct FilesView: View {
         }
         .sheet(isPresented: $showingShareSheet) {
             ShareSheet(items: shareItems)
+        }
+        .sheet(item: $moveSingleFile) { item in
+            FileExporterRepresentableView(
+                urlsToExport: [item.url],
+                asCopy: false,
+                onCompletion: { _ in
+                    moveSingleFile = nil
+                    viewModel.loadFiles()
+                }
+            )
         }
         .sheet(isPresented: $viewModel.showDirectoryPicker) {
             FileExporterRepresentableView(
@@ -239,6 +250,7 @@ struct FilesView: View {
                     hexEditorFileURL: $hexEditorFileURL,
                     shareItems: $shareItems,
                     showingShareSheet: $showingShareSheet,
+                    moveFileItem: $moveSingleFile,
                     onExtractArchive: extractArchive,
                     onPackageApp: packageAppAsIPA,
                     onImportIpa: importIpaToLibrary,

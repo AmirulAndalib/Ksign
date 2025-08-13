@@ -10,6 +10,7 @@ import NimbleViews
 
 struct DylibsView: View {
     var appPath: URL
+    var appName: String
     @Environment(\.dismiss) private var dismiss
     
     @State private var dylibFiles: [URL] = []
@@ -20,7 +21,7 @@ struct DylibsView: View {
     @State private var alertMessage = ""
     
     var body: some View {
-        NBNavigationView(.localized("Frameworks & Dylibs"), displayMode: .inline) {
+        NBNavigationView(appName, displayMode: .inline) {
             VStack {
                 if dylibFiles.isEmpty {
                     if #available(iOS 17.0, *) {
