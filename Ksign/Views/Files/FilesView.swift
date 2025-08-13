@@ -127,7 +127,16 @@ struct FilesView: View {
             ShareSheet(items: shareItems)
         }
         .sheet(isPresented: $viewModel.showDirectoryPicker) {
-            FileDirectoryPickerView(viewModel: viewModel)
+            FileExporterRepresentableView(
+                urlsToExport: Array(viewModel.selectedItems.map { $0.url }),
+                asCopy: false,
+                onCompletion: { _ in
+                    viewModel.selectedItems.removeAll()
+                    if viewModel.isEditMode == .active { viewModel.isEditMode = .inactive }
+                
+                    viewModel.loadFiles()
+                }
+            )
         }
 
         .fullScreenCover(item: $plistFileURL) { fileURL in

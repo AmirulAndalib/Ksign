@@ -219,8 +219,9 @@ struct FileRow: View {
                 onImportIpa(file)
             } label: {
                 Text(String(localized: "Import to Library"))
-                Image(systemName: "folder")
+                Image(systemName: "square.grid.2x2.fill")
             }
+            .tint(.primary)
         }
         
         if let ext = file.fileExtension?.lowercased(), ext == "app" {
