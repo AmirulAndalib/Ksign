@@ -36,7 +36,6 @@ class FilesViewModel: ObservableObject {
     @Published var selectedProvisionFile: FileItem?
     @Published var showDirectoryPicker = false
     @Published var selectedDestinationDirectory: URL?
-    @Published var isImporting = false
     
 
     
@@ -186,63 +185,30 @@ class FilesViewModel: ObservableObject {
     func importFiles(urls: [URL]) {
         guard !urls.isEmpty else { return }
         
-        importFilesSimple(urls: urls)
-    }
-    
-    private func importFilesSimple(urls: [URL]) {
-        guard !urls.isEmpty else { return }
-        
-        DispatchQueue.main.async {
-            self.isImporting = true
-        }
-        
         DispatchQueue.global(qos: .userInitiated).async {
             let fileManager = FileManager.default
-            var successCount = 0
-            var errorMessages: [String] = []
+            var failureCount = 0
             
             for url in urls {
                 do {
-                    let didStartAccessing = url.startAccessingSecurityScopedResource()
-                    
-                    defer {
-                        if didStartAccessing {
-                            url.stopAccessingSecurityScopedResource()
-                        }
-                    }
-                    
                     guard fileManager.fileExists(atPath: url.path) else {
                         throw NSError(domain: "FileImportError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Source file not accessible: \(url.lastPathComponent)"])
                     }
                     
                     let destinationURL = self.currentDirectory.appendingPathComponent(url.lastPathComponent)
-                    
                     let finalDestinationURL = self.generateUniqueFileName(for: destinationURL)
                     
                     try self.importSingleItem(from: url, to: finalDestinationURL)
-                    
-                    successCount += 1
-                    print("Successfully imported \(url.lastPathComponent) to \(finalDestinationURL.lastPathComponent)")
-                    
                 } catch {
-                    let errorMessage = "Failed to import \(url.lastPathComponent): \(error.localizedDescription)"
-                    errorMessages.append(errorMessage)
-                    print(errorMessage)
+                    failureCount += 1
                 }
             }
             
             DispatchQueue.main.async {
-                self.isImporting = false
-                
-                if successCount > 0 && errorMessages.isEmpty {
-                    self.error = "Successfully imported \(successCount) file\(successCount == 1 ? "" : "s")"
-                } else if successCount > 0 && !errorMessages.isEmpty {
-                    self.error = "Imported \(successCount) file\(successCount == 1 ? "" : "s"). \(errorMessages.count) failed."
-                } else {
-                    self.error = errorMessages.first ?? "Failed to import files"
+                if failureCount > 0 {
+                    self.error = "Failed to import \(failureCount) file\(failureCount == 1 ? "" : "s")"
+                    self.showingError = true
                 }
-                self.showingError = true
-                
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                     self.loadFiles()
                 }
@@ -253,24 +219,22 @@ class FilesViewModel: ObservableObject {
     private func importSingleItem(from sourceURL: URL, to destinationURL: URL) throws {
         let fileManager = FileManager.default
         
-        var isDirectory: ObjCBool = false
-        guard fileManager.fileExists(atPath: sourceURL.path, isDirectory: &isDirectory) else {
-            throw NSError(domain: "FileImportError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Source file does not exist at path: \(sourceURL.path)"])
+        guard fileManager.fileExists(atPath: sourceURL.path) else {
+            throw NSError(
+                domain: "FileImportError",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Source does not exist: \(sourceURL.path)"]
+            )
         }
         
         do {
-            if isDirectory.boolValue {
-                try fileManager.copyItem(at: sourceURL, to: destinationURL)
-            } else {
-                do {
-                    try fileManager.copyItem(at: sourceURL, to: destinationURL)
-                } catch {
-                    let data = try Data(contentsOf: sourceURL)
-                    try data.write(to: destinationURL)
-                }
-            }
+            try fileManager.copyItem(at: sourceURL, to: destinationURL)
         } catch {
-            throw NSError(domain: "FileImportError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to copy file: \(error.localizedDescription)"])
+            throw NSError(
+                domain: "FileImportError",
+                code: 2,
+                userInfo: [NSLocalizedDescriptionKey: "Failed to copy file: \(error.localizedDescription)"]
+            )
         }
     }
     

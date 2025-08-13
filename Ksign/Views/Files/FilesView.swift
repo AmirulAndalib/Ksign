@@ -361,19 +361,8 @@ struct FilesView: View {
         Button {
             if !viewModel.selectedItems.isEmpty {
                 let urls = viewModel.selectedItems.map { $0.url }
-                
-                for url in urls {
-                    url.startAccessingSecurityScopedResource()
-                }
-                
                 shareItems = urls
                 showingShareSheet = true
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    for url in urls {
-                        url.stopAccessingSecurityScopedResource()
-                    }
-                }
             }
         } label: {
             Image(systemName: "square.and.arrow.up")
