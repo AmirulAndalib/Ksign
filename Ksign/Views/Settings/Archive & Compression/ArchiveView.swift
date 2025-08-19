@@ -38,7 +38,7 @@ struct ArchiveView: View {
             }
 
             Section {
-                Picker(.localized("Extraction Library"), systemImage: "archivebox", selection: $_extractionLibrary) {
+                Picker(.localized("Extraction Library"), systemImage: "archivebox.circle.fill", selection: $_extractionLibrary) {
                     ForEach(Options.extractionLibraryValues, id: \.self) { value in
                         Text(value).tag(value)
                     }
