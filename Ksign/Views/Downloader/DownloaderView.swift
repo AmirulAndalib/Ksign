@@ -9,6 +9,7 @@ import SwiftUI
 import WebKit
 import UniformTypeIdentifiers
 import NimbleViews
+import UIKit
 
 struct DownloaderView: View {
     @StateObject private var downloadManager = IPADownloadManager()
@@ -289,41 +290,36 @@ private extension DownloaderView {
         }
         
         Task {
-            do {
-                let id = "FeatherDownloader_\(UUID().uuidString)"
-                
-                await MainActor.run {
-                    extractionProgress = 0.1
-                }
-                
-                let download = libraryManager.startArchive(from: item.localPath, id: id)
-                
-                await MainActor.run {
-                    extractionProgress = 0.3
-                }
-                
-                try libraryManager.handlePachageFile(url: item.localPath, dl: download)
-                
-                await MainActor.run {
-                    extractionProgress = 0.8
-                }
-                
-                try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-                
-                await MainActor.run {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        isExtracting = false
+            let id = "FeatherDownloader_\(UUID().uuidString)"
+            
+            await MainActor.run {
+                extractionProgress = 0.1
+            }
+            
+            let download = libraryManager.startArchive(from: item.localPath, id: id)
+            
+            await MainActor.run {
+                extractionProgress = 0.3
+            }
+            
+            FR.handlePackageFile(item.localPath, download: download) { err in
+                DispatchQueue.main.async {
+                    if let error = err {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            isExtracting = false
+                        }
+                        UIAlertController.showAlertWithOk(title: "Error", message: "Failed to import to Library: \(error.localizedDescription)")
+                    } else {
+                        extractionProgress = 1.0
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            isExtracting = false
+                        }
+                        UIAlertController.showAlertWithOk(title: "Success", message: "Successfully imported \(item.title) to Library")
+                        NotificationCenter.default.post(name: Notification.Name("lfetch"), object: nil)
                     }
-                    showErrorMessage("Successfully imported \(item.title) to Library")
-                    NotificationCenter.default.post(name: Notification.Name("lfetch"), object: nil)
-                }
-            } catch {
-                print("Import error: \(error)")
-                await MainActor.run {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        isExtracting = false
+                    if let index = DownloadManager.shared.getDownloadIndex(by: download.id) {
+                        DownloadManager.shared.downloads.remove(at: index)
                     }
-                    showErrorMessage("Failed to import to Library: \(error.localizedDescription)")
                 }
             }
         }
