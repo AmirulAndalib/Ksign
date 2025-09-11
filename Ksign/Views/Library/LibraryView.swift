@@ -16,6 +16,7 @@ struct LibraryView: View {
 	@State private var _selectedInfoAppPresenting: AnyApp?
 	@State private var _selectedSigningAppPresenting: AnyApp?
 	@State private var _selectedInstallAppPresenting: AnyApp?
+	@State private var _selectedAppDylibsPresenting: AnyApp?
 	@State private var _isImportingPresenting = false
 	@State private var _isDownloadingPresenting = false
 	@State private var _alertDownloadString: String = "" // for _isDownloadingPresenting
@@ -82,6 +83,7 @@ struct LibraryView: View {
 									selectedInfoAppPresenting: $_selectedInfoAppPresenting,
 									selectedSigningAppPresenting: $_selectedSigningAppPresenting,
 									selectedInstallAppPresenting: $_selectedInstallAppPresenting,
+									selectedAppDylibsPresenting: $_selectedAppDylibsPresenting,
 									isEditMode: $_isEditMode,
 									selectedApps: $_selectedApps
 								)
@@ -99,6 +101,7 @@ struct LibraryView: View {
 									selectedInfoAppPresenting: $_selectedInfoAppPresenting,
 									selectedSigningAppPresenting: $_selectedSigningAppPresenting,
 									selectedInstallAppPresenting: $_selectedInstallAppPresenting,
+									selectedAppDylibsPresenting: $_selectedAppDylibsPresenting,
 									isEditMode: $_isEditMode,
 									selectedApps: $_selectedApps
 								)
@@ -176,6 +179,10 @@ struct LibraryView: View {
 			}
 			.fullScreenCover(item: $_selectedSigningAppPresenting) { app in
 				SigningView(app: app.base, signAndInstall: app.signAndInstall)
+					.compatNavigationTransition(id: app.base.uuid ?? "", ns: _namespace)
+			}
+			.fullScreenCover(item: $_selectedAppDylibsPresenting) { app in
+                DylibsView(app: app.base)
 					.compatNavigationTransition(id: app.base.uuid ?? "", ns: _namespace)
 			}
 			.sheet(isPresented: $_isImportingPresenting) {

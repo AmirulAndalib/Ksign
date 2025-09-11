@@ -9,8 +9,7 @@ import SwiftUI
 import NimbleViews
 
 struct DylibsView: View {
-    var appPath: URL
-    var appName: String
+    var app: AppInfoPresentable
     @Environment(\.dismiss) private var dismiss
     @AppStorage("Feather.useLastExportLocation") private var _useLastExportLocation: Bool = false
     
@@ -22,7 +21,7 @@ struct DylibsView: View {
     @State private var alertMessage = ""
     
     var body: some View {
-        NBNavigationView(appName, displayMode: .inline) {
+        NBNavigationView(app.name ?? .localized("Frameworks & Dylibs"), displayMode: .inline) {
             VStack {
                 List(dylibFiles, id: \.absoluteString) { fileURL in
                     DylibRowView(
@@ -68,6 +67,13 @@ struct DylibsView: View {
                         dismiss()
                     }
                 }
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: 8) {
+                        FRAppIconView(app: app, size: 32)
+                        Text(app.name ?? .localized("Frameworks & Dylibs"))
+                            .font(.headline)
+                    }
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(.localized("Copy")) {
                         showDirectoryPicker = true
@@ -98,6 +104,7 @@ struct DylibsView: View {
     
     private func loadDylibFiles() {
         dylibFiles = []
+        guard let appPath = Storage.shared.getAppDirectory(for: app) else { return }
         
         let fileManager = FileManager.default
         let searchPaths = [
