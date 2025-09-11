@@ -209,8 +209,8 @@ struct LibraryView: View {
 				}
 			}
 			.onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("feather.installApp"))) { notification in
-				if let app = notification.object as? AnyApp {
-					_selectedInstallAppPresenting = app
+                if let app = _signedApps.first {
+                    _selectedInstallAppPresenting = AnyApp(base: app)
 				}
 			}
         }

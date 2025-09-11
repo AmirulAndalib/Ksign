@@ -8,15 +8,9 @@
 import SwiftUI
 import PhotosUI
 import NimbleViews
-import CoreData
-
-// Protocol for signing views with additional flags
-protocol SigningWithFlagsView {
-	var signAndInstall: Bool { get }
-}
 
 // MARK: - View
-struct SigningView: View, SigningWithFlagsView {
+struct SigningView: View {
 	@Environment(\.dismiss) var dismiss
 	@StateObject private var _optionsManager = OptionsManager.shared
 	
@@ -29,7 +23,6 @@ struct SigningView: View, SigningWithFlagsView {
 	@State private var _selectedPhoto: PhotosPickerItem? = nil
 	@State var appIcon: UIImage?
 	
-	// For Sign & Install feature
 	var signAndInstall: Bool = false
 	
 	// MARK: Fetch
@@ -258,11 +251,6 @@ extension SigningView {
 		generator.impactOccurred()
 		_isSigning = true
 		
-		// Save the identifiers for later reference (use modified ones if available)
-		let originalUUID = app.uuid
-		let finalIdentifier = _temporaryOptions.appIdentifier ?? app.identifier
-		let finalName = _temporaryOptions.appName ?? app.name
-		
 		FR.signPackageFile(
 			app,
 			using: _temporaryOptions,
@@ -284,49 +272,15 @@ extension SigningView {
 				if _temporaryOptions.removeApp && !app.isSigned {
 					Storage.shared.deleteApp(for: app)
 				}
-				// Check if we need to install the app after signing
+                
 				if signAndInstall {
-					// Find the signed app that matches our signed app
-					let context = Storage.shared.context
-					
-					// Try to find by UUID first (most reliable if it's preserved)
-					var signedApp: Signed? = nil
-					
-					if let uuid = originalUUID {
-						let fetchRequest = NSFetchRequest<Signed>(entityName: "Signed")
-						fetchRequest.predicate = NSPredicate(format: "uuid == %@", uuid)
-						signedApp = try? context.fetch(fetchRequest).first
-					}
-					
-					// If UUID search failed, try by the final (modified) app identifier and name
-					if signedApp == nil, let identifier = finalIdentifier, let name = finalName {
-						let fetchRequest = NSFetchRequest<Signed>(entityName: "Signed")
-						fetchRequest.predicate = NSPredicate(format: "identifier == %@ AND name == %@", identifier, name)
-						fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \Signed.date, ascending: false)]
-						signedApp = try? context.fetch(fetchRequest).first
-					}
-					
-					// As a last resort, just get the most recently signed app
-					if signedApp == nil {
-						let fetchRequest = NSFetchRequest<Signed>(entityName: "Signed")
-						fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \Signed.date, ascending: false)]
-						fetchRequest.fetchLimit = 1
-						signedApp = try? context.fetch(fetchRequest).first
-					}
-					
-					// If we found a signed app, show the installation dialog
-					if let signedApp = signedApp {
-						let installApp = AnyApp(base: signedApp)
-						
-						// Use a slight delay to ensure the UI has time to update
-						DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-							NotificationCenter.default.post(
-								name: NSNotification.Name("feather.installApp"),
-								object: installApp
-							)
-						}
-					}
-				}
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                        NotificationCenter.default.post(
+                            name: NSNotification.Name("feather.installApp"),
+                            object: nil
+                        )
+                    }
+                }
 				dismiss()
 			}
 		}
