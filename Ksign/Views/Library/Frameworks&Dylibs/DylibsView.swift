@@ -7,6 +7,7 @@
 
 import SwiftUI
 import NimbleViews
+import ZsignSwift
 
 struct DylibsView: View {
     var app: AppInfoPresentable
@@ -16,14 +17,12 @@ struct DylibsView: View {
     @State private var dylibFiles: [URL] = []
     @State private var selectedDylibs: [URL] = []
     @State private var showDirectoryPicker = false
-    @State private var showAlert = false
-    @State private var alertTitle = ""
-    @State private var alertMessage = ""
-    
+    @State private var hiddenDylibCount: Int = 0
+    @State private var searchText: String = ""
     var body: some View {
         NBNavigationView(app.name ?? .localized("Frameworks & Dylibs"), displayMode: .inline) {
             VStack {
-                List(dylibFiles, id: \.absoluteString) { fileURL in
+                List(dylibFiles.filter { searchText.isEmpty ? true : $0.lastPathComponent.localizedCaseInsensitiveContains(searchText) }, id: \.absoluteString) { fileURL in
                     DylibRowView(
                         fileURL: fileURL,
                         isSelected: selectedDylibs.contains(fileURL),
@@ -33,6 +32,11 @@ struct DylibsView: View {
                     )
                 }
                 .listStyle(.plain)
+                if hiddenDylibCount > 0 {
+                    Text(verbatim: .localized("%lld required system dylibs not shown", arguments: hiddenDylibCount))
+                        .font(.footnote)
+                        .foregroundColor(.disabled())
+                }
             }
             .overlay(alignment: .center) {
                 if dylibFiles.isEmpty {
@@ -69,7 +73,7 @@ struct DylibsView: View {
                 }
                 ToolbarItem(placement: .principal) {
                     HStack(spacing: 8) {
-                        FRAppIconView(app: app, size: 32)
+                        FRAppIconView(app: app, size: 28)
                         Text(app.name ?? .localized("Frameworks & Dylibs"))
                             .font(.headline)
                     }
@@ -94,17 +98,19 @@ struct DylibsView: View {
                     }
                 )
             }
-            .alert(alertTitle, isPresented: $showAlert) {
-                Button(.localized("OK"), role: .cancel) { }
-            } message: {
-                Text(alertMessage)
-            }
+            .searchable(text: $searchText)
         }
     }
     
     private func loadDylibFiles() {
         dylibFiles = []
+        hiddenDylibCount = 0
         guard let appPath = Storage.shared.getAppDirectory(for: app) else { return }
+        let bundle = Bundle(url: appPath)
+        let execPath = appPath.appendingPathComponent(bundle?.exec ?? "").relativePath
+        let allDylibs = Zsign.listDylibs(appExecutable: execPath).map { $0 as String }
+        let visibleDylibs = allDylibs.filter { $0.hasPrefix("@rpath") || $0.hasPrefix("@executable_path") }
+        hiddenDylibCount = allDylibs.count - visibleDylibs.count
         
         let fileManager = FileManager.default
         let searchPaths = [
@@ -134,6 +140,7 @@ struct DylibsView: View {
             
             DispatchQueue.main.async {
                 self.dylibFiles = sortedFiles
+                self.hiddenDylibCount = hiddenDylibCount
             }
         }
     }
