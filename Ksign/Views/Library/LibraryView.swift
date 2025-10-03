@@ -149,7 +149,7 @@ struct LibraryView: View {
 						} label: {
 							NBButton(.localized("Sign"), systemImage: "signature", style: .icon)
 						}
-						.disabled(_selectedApps.isEmpty)
+                        .disabled(_selectedApps.isEmpty)
 						
 						Button {
 							_bulkDeleteSelectedApps()
@@ -194,7 +194,15 @@ struct LibraryView: View {
 					.compatNavigationTransition(id: app.base.uuid ?? "", ns: _namespace)
 			}
 			.fullScreenCover(isPresented: $_isBulkSigningPresenting) {
-				BulkSigningView()
+				BulkSigningView(apps: _selectedApps.compactMap { id in
+					(_importedApps.first(where: { $0.uuid == id }) as AppInfoPresentable?)
+					?? (_signedApps.first(where: { $0.uuid == id }) as AppInfoPresentable?)
+				})
+				.compatNavigationTransition(id: _selectedApps.joined(separator: ","), ns: _namespace)
+				.onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ksign.bulkSigningFinished"))) { notification in
+					_toggleEditMode()
+					_selectedTab = 1
+				}
 			}
 			.sheet(isPresented: $_isImportingPresenting) {
 				FileImporterRepresentableView(
