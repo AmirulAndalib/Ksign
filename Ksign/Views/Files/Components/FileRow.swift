@@ -79,7 +79,7 @@ struct FileRow: View {
                     Image(systemName: "key")
                         .foregroundColor(.accentColor)
                 } else if file.isKsignFile {
-                    Image(systemName: "signature")
+                    Image(systemName: "questionmark")
                         .foregroundColor(.accentColor)
                 } else {
                     Image(systemName: "doc")
@@ -214,9 +214,9 @@ struct FileRow: View {
         
         if file.isKsignFile {
             Button {
-                viewModel.importKsignFile(file)
+                UIAlertController.showAlertWithOk(title: "NO", message: "Not anymore :)")
             } label: {
-                Label(String(localized: "Import Certificate"), systemImage: "key")
+                Label(String(localized: "Import Certificate"), systemImage: "questionmark")
             }
         }
         
