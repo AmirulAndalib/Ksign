@@ -214,7 +214,7 @@ struct FileRow: View {
         
         if file.isKsignFile {
             Button {
-                UIAlertController.showAlertWithOk(title: "NO", message: "Not anymore :)")
+                UIAlertController.showAlertWithOk(title: "?", message: .localized("Ksign certificate file (.ksign) is now unsupported from v1.5.1, please refer to use .p12 and .mobileprovision instead."))
             } label: {
                 Label(String(localized: "Import Certificate"), systemImage: "questionmark")
             }

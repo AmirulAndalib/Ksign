@@ -70,7 +70,7 @@ struct FeatherApp: App {
 			}
 			
             if url.pathExtension == "ksign" {
-                UIAlertController.showAlertWithOk(title: "Error", message: "Ksign certificate file (.ksign) is now unsupported from 1.5.1, please refer to use .p12 and .mobileprovision instead.")
+                UIAlertController.showAlertWithOk(title: .localized("Error"), message: .localized("Ksign certificate file (.ksign) is now unsupported from v1.5.1, please refer to use .p12 and .mobileprovision instead."))
             }
 		}
 	}
