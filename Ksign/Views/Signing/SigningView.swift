@@ -40,6 +40,18 @@ struct SigningView: View {
 		return certificates[_temporaryCertificate]
 	}
 	
+	private func _getCertAppID() -> String? {
+		guard
+			let cert = _selectedCert(),
+			let decoded = Storage.shared.getProvisionFileDecoded(for: cert),
+			let entitlements = decoded.Entitlements,
+			let appID = entitlements["application-identifier"]?.value as? String
+		else {
+			return nil
+		}
+		return appID.split(separator: ".").dropFirst().joined(separator: ".")
+	}
+	
 	var app: AppInfoPresentable
 	
 	init(app: AppInfoPresentable, signAndInstall: Bool = false) {
@@ -171,6 +183,7 @@ extension SigningView {
 				SigningPropertiesView(
 					title: .localized("Identifier"),
 					initialValue: _temporaryOptions.appIdentifier ?? (app.identifier ?? ""),
+					certAppId: _getCertAppID(),
 					bindingValue: $_temporaryOptions.appIdentifier
 				)
 			}

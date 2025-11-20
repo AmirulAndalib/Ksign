@@ -20,6 +20,7 @@ struct SigningPropertiesView: View {
 	
 	var title: String
 	var initialValue: String 
+	var certAppId: String? = nil
 	@Binding var bindingValue: String?
 	
 	// MARK: Body
@@ -27,6 +28,18 @@ struct SigningPropertiesView: View {
 		NBList(title) {
 			TextField(initialValue, text: $text)
 				.textInputAutocapitalization(.none)
+            
+            Section {
+                if let certAppId {
+                    Button {
+                        text = certAppId
+                    } label: {
+                        Text(.localized("Matching Certificate's App ID"))
+                    }
+                }
+            } footer: {
+                Text(.localized("Use certiticate's app ID, this will help the app have access to features that uses certificate's entitlements."))
+            }
 		}
 		.toolbar {
 			NBToolbarButton(
