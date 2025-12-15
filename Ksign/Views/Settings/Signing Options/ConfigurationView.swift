@@ -27,6 +27,18 @@ struct ConfigurationView: View {
 					dataDict: $_optionsManager.options.identifiers
 				)
 			)
+			Section {
+				TextField(.localized("Prefix"), text: Binding(
+					get: { _optionsManager.options.prefix ?? "" },
+					set: { _optionsManager.options.prefix = $0.isEmpty ? nil : $0 }
+				))
+				TextField(.localized("Suffix"), text: Binding(
+					get: { _optionsManager.options.suffix ?? "" },
+					set: { _optionsManager.options.suffix = $0.isEmpty ? nil : $0 }
+				))
+			} footer: {
+				Text(.localized("Prefix/Suffix will be added to the app name before and after the app name."))
+			}
 			
 			SigningOptionsView(options: $_optionsManager.options)
 		}

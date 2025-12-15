@@ -150,6 +150,26 @@ struct SigningView: View {
 			{
 				_temporaryOptions.appName = newName
 			}
+			
+			if _optionsManager.options.prefix != nil || _optionsManager.options.suffix != nil {
+				var name = app.name ?? ""
+				
+				if
+					let dictName = _temporaryOptions.displayNames[name]
+				{
+					name = dictName
+				}
+				
+				if let prefix = _optionsManager.options.prefix {
+					name = prefix + name
+				}
+				
+				if let suffix = _optionsManager.options.suffix {
+					name = name + suffix
+				}
+				
+				_temporaryOptions.appName = name
+			}
 		}
     }
 }
