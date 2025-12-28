@@ -8,7 +8,7 @@
 import Foundation
 import UIKit.UIApplication
 import Zip
-import SwiftUICore
+import SwiftUI
 
 final class ArchiveHandler: NSObject {
 	@ObservedObject var viewModel: InstallerStatusViewModel

@@ -8,7 +8,7 @@
 import Foundation
 import Zip
 import ZIPFoundation
-import SwiftUICore
+import SwiftUI
 import SWCompression
 import Foundation.NSByteCountFormatter
 
